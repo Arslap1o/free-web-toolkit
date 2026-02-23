@@ -1,0 +1,25 @@
+{
+  "name": "free-web-creator-toolkit",
+  "version": "1.0.0",
+  "description": "Modern, production-ready developer tools for SEO and monetization.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [
+    "seo",
+    "tools",
+    "developer",
+    "toolkit"
+  ],
+  "author": "Arsalan",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "cheerio": "^1.0.0-rc.12",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "xmlbuilder2": "^3.1.1"
+  }
+}
