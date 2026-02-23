@@ -3,45 +3,56 @@ const path = require('path');
 const cors = require('cors');
 
 // Import Route Handlers
+// Ensure these files exist in /routes/ folder exactly as named
 const seoRoutes = require('./routes/seo');
 const toolRoutes = require('./routes/tools');
 
 const app = express();
 
-// Middleware
+// 1. Essential Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 1. Serve static files (CSS, JS, Images)
-// We use path.resolve to ensure Vercel finds the directory correctly
-const publicPath = path.resolve(__dirname, 'public');
-app.use(express.static(publicPath));
-
-// 2. API Routes
+// 2. API Routes (Defined BEFORE static files)
 app.use('/api/seo', seoRoutes);
 app.use('/api/tools', toolRoutes);
 
-// 3. Health check
+// Health check for monitoring
 app.get('/api/status', (req, res) => {
-    res.json({ status: 'online', platform: 'Vercel Serverless' });
+    res.json({ 
+        status: 'online', 
+        timestamp: new Date(),
+        environment: process.env.NODE_ENV || 'development'
+    });
 });
 
-// 4. THE FIX FOR 404: Catch-all route
-// This sends the index.html for ANY request that isn't an API or static file.
+// 3. Static File Serving
+// Use process.cwd() to ensure we are looking in the root of the project
+const publicPath = path.join(process.cwd(), 'public');
+app.use(express.static(publicPath));
+
+// 4. The Catch-All Route
+// This must be the LAST route. It handles the frontend.
 app.get('*', (req, res) => {
-    res.sendFile(path.join(publicPath, 'index.html'), (err) => {
+    const indexPath = path.join(publicPath, 'index.html');
+    res.sendFile(indexPath, (err) => {
         if (err) {
-            res.status(500).send("Error loading index.html. Check if the 'public' folder exists in the root.");
+            console.error("Critical Error: index.html not found at", indexPath);
+            res.status(500).send("The toolkit frontend is missing. Please check the 'public' folder.");
         }
     });
 });
 
-// Vercel handles the port, but we keep this for local testing
+// 5. Local Development Server
+// Vercel ignores this block and uses its own internal handler
 if (process.env.NODE_ENV !== 'production') {
     const PORT = process.env.PORT || 3000;
-    app.listen(PORT, () => console.log(`🚀 Local Server: http://localhost:${PORT}`));
+    app.listen(PORT, () => {
+        console.log(`🚀 Local development server: http://localhost:${PORT}`);
+    });
 }
 
-// Export for Vercel
+// 6. The Vercel Handshake
+// This is why the code works as a Serverless Function
 module.exports = app;
